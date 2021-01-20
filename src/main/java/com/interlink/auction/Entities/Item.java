@@ -16,9 +16,12 @@ public class Item {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User owner;
 
+    @OneToOne(mappedBy = "item", cascade = CascadeType.ALL)
+    private Auction auction;
     public Long getId() {
         return id;
     }
+
 
     public void setId(Long id) {
         this.id = id;
