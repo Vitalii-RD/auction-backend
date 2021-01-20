@@ -23,7 +23,7 @@ public class Auction {
     private boolean done;
 
     @OneToMany
-    @JoinColumn(name = "auction_id", referencedColumnName = "id")
+    @JoinColumn(name = "auction_id", referencedColumnName = "id", nullable = false)
     private List<Bid> history;
 
     public Long getId() {

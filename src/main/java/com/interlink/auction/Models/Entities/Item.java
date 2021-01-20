@@ -13,7 +13,7 @@ public class Item {
     private String title;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User owner;
 
     @OneToOne(mappedBy = "item", cascade = CascadeType.ALL)
