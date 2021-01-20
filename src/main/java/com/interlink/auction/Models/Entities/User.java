@@ -1,4 +1,4 @@
-package com.interlink.auction.Entities;
+package com.interlink.auction.Models.Entities;
 
 import javax.persistence.*;
 
