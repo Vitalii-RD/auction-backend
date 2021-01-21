@@ -20,8 +20,18 @@ public class AuctionController {
         return auctionService.getAll();
     }
 
+    @GetMapping("/{id}")
+    Auction getAuction(@PathVariable("id") Long id) {
+        return auctionService.getAuctionById(id);
+    }
+
     @PostMapping()
     public Auction createAuction(@RequestBody AuctionDTORequest auction) {
         return auctionService.createAuction(auction);
+    }
+
+    @DeleteMapping("/{id}")
+    void deleteAuction(@PathVariable("id") Long id) {
+        auctionService.deleteAuction(id);
     }
 }
