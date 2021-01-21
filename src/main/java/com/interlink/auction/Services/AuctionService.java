@@ -1,5 +1,6 @@
 package com.interlink.auction.Services;
 
+import com.interlink.auction.Models.DTO.AuctionDTORequest;
 import com.interlink.auction.Models.Entities.Auction;
 import com.interlink.auction.Models.Entities.Item;
 import com.interlink.auction.Models.Entities.User;
@@ -18,14 +19,20 @@ import java.util.List;
 public class AuctionService {
     @Autowired
     AuctionRepository auctionRepository;
+    @Autowired
+    UserRepository userRepository;
 
-    public Auction createAuction() {
-        User user = new User("new user", "new", "new");
-        Item item = new Item("smth", user);
+    public Auction createAuction(AuctionDTORequest auctionDTO) {
+        User owner = userRepository.findById(auctionDTO.getOwnerId())
+            .orElseThrow(
+                () -> new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Account not found with id: " + auctionDTO.getOwnerId())
+            );
 
-        Auction auction = new Auction(item, 100, LocalDateTime.now(), false);
-
-        return auctionRepository.save(auction);
+        Item item = new Item(auctionDTO.getItemName(), owner);
+        Auction result = new Auction(item, auctionDTO.getInitialBid(), LocalDateTime.now(), false);
+        return auctionRepository.save(result);
     }
 
     public List<Auction> getAll() {

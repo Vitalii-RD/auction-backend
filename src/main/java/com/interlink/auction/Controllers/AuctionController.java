@@ -20,4 +20,8 @@ public class AuctionController {
         return auctionService.getAll();
     }
 
+    @PostMapping()
+    public Auction createAuction(@RequestBody AuctionDTORequest auction) {
+        return auctionService.createAuction(auction);
+    }
 }
