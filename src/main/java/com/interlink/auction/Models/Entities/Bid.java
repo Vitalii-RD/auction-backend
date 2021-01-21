@@ -13,7 +13,7 @@ public class Bid {
     @Column
     private double bid;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User user;
 

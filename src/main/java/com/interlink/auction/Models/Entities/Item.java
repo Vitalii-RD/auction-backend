@@ -12,16 +12,23 @@ public class Item {
     @Column
     private String title;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
     private User owner;
 
     @OneToOne(mappedBy = "item", cascade = CascadeType.ALL)
     private Auction auction;
+
+    public Item() {}
+
+    public Item(String title, User owner) {
+        this.title = title;
+        this.owner = owner;
+    }
+
     public Long getId() {
         return id;
     }
-
 
     public void setId(Long id) {
         this.id = id;
