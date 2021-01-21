@@ -36,7 +36,9 @@ public class AuctionService {
     }
 
     public List<Auction> getAll() {
-        return auctionRepository.findAll();
+        List<Auction> auctions = auctionRepository.findAll();
+        auctions.forEach(auction -> auction.getHistory().sort((a, b) -> (int) (a.getBid() - b.getBid())));
+        return  auctions;
     }
 
     public Auction getAuctionById(Long id) {
