@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class AuctionService {
@@ -25,5 +26,7 @@ public class AuctionService {
         return auctionRepository.save(auction);
     }
 
-
+    public List<Auction> getAll() {
+        return auctionRepository.findAll();
+    }
 }
