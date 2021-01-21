@@ -12,7 +12,7 @@ public class Auction {
     @Column
     private Long id;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
     @Column
@@ -22,9 +22,18 @@ public class Auction {
     @Column
     private boolean done;
 
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "auction_id", referencedColumnName = "id", nullable = false)
     private List<Bid> history;
+
+    public Auction() { }
+
+    public Auction(Item item, double initialBid, LocalDateTime dateCreated, boolean done) {
+        this.item = item;
+        this.initialBid = initialBid;
+        this.dateCreated = dateCreated;
+        this.done = done;
+    }
 
     public Long getId() {
         return id;
