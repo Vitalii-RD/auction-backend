@@ -40,4 +40,9 @@ public class AuctionController {
     public Auction makeBid(@PathVariable("id") Long id, @RequestBody BidDTORequest bidDTORequest) {
         return auctionService.makeBid(id, bidDTORequest);
     }
+
+    @PutMapping("/{id}")
+    public Auction closeAuction(@PathVariable("id") Long id, @RequestBody AuctionDTORequest auctionDTORequest) {
+        return auctionService.closeAuction(id, auctionDTORequest);
+    }
 }

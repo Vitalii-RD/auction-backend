@@ -42,7 +42,7 @@ public class AuctionService {
 
     public List<Auction> getAll() {
         List<Auction> auctions = auctionRepository.findAll();
-        auctions.forEach(auction -> auction.getHistory().sort((a, b) -> (int) (a.getBid() - b.getBid())));
+        auctions.forEach(auction -> auction.getHistory().sort(AuctionService::sortHistory));
         return  auctions;
     }
 
@@ -50,8 +50,27 @@ public class AuctionService {
         Auction auction = auctionRepository
             .findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Auction not found with id: " + id));
-        auction.getHistory().sort((a, b) -> (int) (a.getBid() - b.getBid()));
+        auction.getHistory().sort(AuctionService::sortHistory);
         return auction;
+    }
+
+    public Auction closeAuction(Long id, AuctionDTORequest auctionDTO) {
+        Auction auction = auctionRepository
+                .findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Auction not found with id: " + id));
+
+        if (!auction.getItem().getOwner().getId().equals(auctionDTO.getOwnerId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Wrong user! This auction does not belong to you");
+        }
+
+        auction.getHistory().sort(AuctionService::sortHistory);
+        auction.setDone(true);
+        auctionRepository.save(auction);
+        return auction;
+    }
+
+    private static int sortHistory(Bid e1, Bid e2) {
+        return (int) (e1.getBid() - e2.getBid());
     }
 
     public void deleteAuction(Long id) {
