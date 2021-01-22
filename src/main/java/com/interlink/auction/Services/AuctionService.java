@@ -129,7 +129,13 @@ public class AuctionService {
 
     private static final double INCREASE_RATE = 1.05;
     private static Long getIncreasedBidValue(double bid) {
-        double newValue = bid * INCREASE_RATE;
-        return (long) newValue;
+        long newValue = Math.round(bid * INCREASE_RATE);
+        int len = Long.toString(newValue).length();
+        if (1 < len && len <= 3) {
+            newValue = (long) Math.ceil((double)newValue / 10) * 10;
+        } else if (len > 3){
+            newValue = (long) Math.ceil((double)newValue / 100) * 100;
+        }
+        return newValue;
     }
 }
