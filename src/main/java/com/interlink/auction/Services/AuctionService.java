@@ -47,9 +47,11 @@ public class AuctionService {
     }
 
     public Auction getAuctionById(Long id) {
-        return auctionRepository
+        Auction auction = auctionRepository
             .findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Auction not found with id: " + id));
+        auction.getHistory().sort((a, b) -> (int) (a.getBid() - b.getBid()));
+        return auction;
     }
 
     public void deleteAuction(Long id) {
@@ -63,16 +65,43 @@ public class AuctionService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + bidDTO.getUserId()));
         Auction auction = auctionRepository.findById(auctionId).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Auction not found with id: " + auctionId));
-        Bid maxBid = bidRepository.findMaxBidInAuction(auctionId);
 
-        if (maxBid != null) {
-            if (bidDTO.getUserId().equals(maxBid.getUser().getId())) {
+        if (bidDTO.getUserId().equals(auction.getItem().getOwner().getId())) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Owner cannot create a bid on his own item");
+        }
+
+        Bid latestBid = bidRepository.findMaxBidInAuction(auctionId);
+
+        if (latestBid != null) {
+            Long increasedBid = getIncreasedBidValue(latestBid.getBid());
+            Long increasedMaxBid = getIncreasedBidValue(latestBid.getMaxBid());
+
+            if (bidDTO.getUserId().equals(latestBid.getUser().getId())) {
                 throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "User`s bid is already the highest");
-            } else if (bidDTO.getUserId().equals(auction.getItem().getOwner().getId())) {
-                throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Owner cannot create a bid on his own item");
-            } else if (bidDTO.getBid() < AuctionService.getIncreasedBidValue(maxBid.getBid())) {
+            } else if (bidDTO.getMaxBid() == bidDTO.getBid()) {
+                if (bidDTO.getBid() < increasedBid)  {
+                    throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Bid is too small");
+                } else if (bidDTO.getBid() < increasedMaxBid) {
+                    latestBid.setBid(bidDTO.getBid());
+                    bidRepository.save(latestBid);
+                    throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Bid is too small");
+                }
+            } else if(bidDTO.getMaxBid() > increasedMaxBid) {
+                if (bidDTO.getBid() < increasedMaxBid) {
+                    bidDTO.setBid(increasedMaxBid);
+                }
+            } else if (bidDTO.getMaxBid() < increasedMaxBid) {
+                if (bidDTO.getMaxBid() > increasedBid) {
+                    latestBid.setBid(bidDTO.getMaxBid());
+                    bidRepository.save(latestBid);
+                }
                 throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Bid is too small");
             }
+
+        } else if (auction.getInitialBid() > bidDTO.getBid()) {
+            if (auction.getInitialBid() < bidDTO.getMaxBid()) {
+                bidDTO.setBid(auction.getInitialBid());
+            } else throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Bid is smaller than initial bid");
         }
 
         auction.addBidToHistory(new Bid(bidDTO.getBid(), bidDTO.getMaxBid(), user, LocalDateTime.now()));
@@ -80,7 +109,6 @@ public class AuctionService {
     }
 
     private static final double INCREASE_RATE = 1.05;
-
     private static Long getIncreasedBidValue(double bid) {
         double newValue = bid * INCREASE_RATE;
         return (long) newValue;
