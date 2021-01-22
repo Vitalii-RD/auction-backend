@@ -1,6 +1,7 @@
 package com.interlink.auction.Controllers;
 
 import com.interlink.auction.Models.DTO.AuctionDTORequest;
+import com.interlink.auction.Models.DTO.BidDTORequest;
 import com.interlink.auction.Models.Entities.Auction;
 import com.interlink.auction.Services.AuctionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,5 +34,10 @@ public class AuctionController {
     @DeleteMapping("/{id}")
     void deleteAuction(@PathVariable("id") Long id) {
         auctionService.deleteAuction(id);
+    }
+
+    @PostMapping("/{id}/bids")
+    public Auction makeBid(@PathVariable("id") Long id, @RequestBody BidDTORequest bidDTORequest) {
+        return auctionService.makeBid(id, bidDTORequest);
     }
 }
