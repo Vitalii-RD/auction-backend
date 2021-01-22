@@ -82,4 +82,8 @@ public class Auction {
     public void setHistory(List<Bid> history) {
         this.history = history;
     }
+
+    public void addBidToHistory(Bid bid) {
+        this.history.add(bid);
+    }
 }
