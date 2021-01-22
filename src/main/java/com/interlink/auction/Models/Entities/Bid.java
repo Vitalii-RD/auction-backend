@@ -12,6 +12,8 @@ public class Bid {
     private Long id;
     @Column
     private double bid;
+    @Column
+    private double maxBid;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
@@ -22,8 +24,9 @@ public class Bid {
 
     public Bid() {}
 
-    public Bid(double bid, User user, LocalDateTime date) {
+    public Bid(double bid, double maxBid, User user, LocalDateTime date) {
         this.bid = bid;
+        this.maxBid = maxBid;
         this.user = user;
         this.date = date;
     }
@@ -42,6 +45,14 @@ public class Bid {
 
     public void setBid(double bid) {
         this.bid = bid;
+    }
+
+    public double getMaxBid() {
+        return maxBid;
+    }
+
+    public void setMaxBid(double maxBid) {
+        this.maxBid = maxBid;
     }
 
     public User getUser() {

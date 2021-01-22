@@ -75,7 +75,7 @@ public class AuctionService {
             }
         }
 
-        auction.addBidToHistory(new Bid(bidDTO.getBid(), user, LocalDateTime.now()));
+        auction.addBidToHistory(new Bid(bidDTO.getBid(), bidDTO.getMaxBid(), user, LocalDateTime.now()));
         return auctionRepository.save(auction);
     }
 
