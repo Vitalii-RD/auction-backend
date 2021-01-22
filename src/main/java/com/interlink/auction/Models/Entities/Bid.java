@@ -20,6 +20,14 @@ public class Bid {
     @Column
     private LocalDateTime date;
 
+    public Bid() {}
+
+    public Bid(double bid, User user, LocalDateTime date) {
+        this.bid = bid;
+        this.user = user;
+        this.date = date;
+    }
+
     public Long getId() {
         return id;
     }
