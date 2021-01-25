@@ -1,6 +1,7 @@
 package com.interlink.auction.Services;
 
 import com.interlink.auction.Models.DTO.LoginDTORequest;
+import com.interlink.auction.Models.DTO.UserDTOResponse;
 import com.interlink.auction.Models.Entities.User;
 import com.interlink.auction.Repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,8 +20,8 @@ public class AuthenticationService {
     @Autowired
     UserRepository userRepository;
 
-    public void login(HttpServletResponse response, LoginDTORequest loginDTORequest) {
-        User user = userRepository.findByEmailAndPassword(loginDTORequest.getEmail(), loginDTORequest.getPassword());
+    public UserDTOResponse login(HttpServletResponse response, LoginDTORequest loginDTORequest) {
+        UserDTOResponse user = userRepository.findByEmailAndPassword(loginDTORequest.getEmail(), loginDTORequest.getPassword());
         if (user != null) {
             System.out.println(user.getId());
             Cookie cookie = new Cookie("id", user.getId().toString());
@@ -28,6 +29,7 @@ public class AuthenticationService {
             cookie.setHttpOnly(true);
             response.addCookie(cookie);
         } else throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exits");
+        return user;
     }
 
 

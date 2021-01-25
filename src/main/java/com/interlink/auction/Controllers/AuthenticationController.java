@@ -1,6 +1,7 @@
 package com.interlink.auction.Controllers;
 
 import com.interlink.auction.Models.DTO.LoginDTORequest;
+import com.interlink.auction.Models.DTO.UserDTOResponse;
 import com.interlink.auction.Services.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,7 @@ public class AuthenticationController {
     AuthenticationService authenticationService;
 
     @PostMapping("/login")
-    public void login(HttpServletResponse response, @RequestBody LoginDTORequest loginDTORequest) {
-        authenticationService.login(response, loginDTORequest);
+    public UserDTOResponse login(HttpServletResponse response, @RequestBody LoginDTORequest loginDTORequest) {
+        return authenticationService.login(response, loginDTORequest);
     }
 }
