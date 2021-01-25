@@ -27,13 +27,14 @@ public class AuctionService {
     @Autowired
     BidRepository bidRepository;
 
-    public Auction createAuction(AuctionDTORequest auctionDTO) {
-        User owner = userRepository.findById(auctionDTO.getOwnerId())
-            .orElseThrow(
-                () -> new ResponseStatusException(
+    public Auction createAuction(String userId, AuctionDTORequest auctionDTO) {
+        if (userId.equals("")) throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "User is not logged in");
+
+        User owner = userRepository.findById(Long.parseLong(userId))
+            .orElseThrow(() -> new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
-                    "Account not found with id: " + auctionDTO.getOwnerId())
-            );
+                    "Account not found with id: " + userId));
 
         Item item = new Item(auctionDTO.getItemName(), owner);
         Auction result = new Auction(item, auctionDTO.getInitialBid(), LocalDateTime.now(), false);
@@ -54,7 +55,7 @@ public class AuctionService {
         return auction;
     }
 
-    public Auction closeAuction(Long id, AuctionDTORequest auctionDTO) {
+    public Auction closeAuction(String userId, Long id, AuctionDTORequest auctionDTO) {
         Auction auction = auctionRepository
                 .findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Auction not found with id: " + id));
@@ -73,13 +74,13 @@ public class AuctionService {
         return (int) (e1.getBid() - e2.getBid());
     }
 
-    public void deleteAuction(Long id) {
+    public void deleteAuction(String userId, Long id) {
         Auction auction = auctionRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Auction not found with id: " + id));
         auctionRepository.delete(auction);
     }
 
-    public Auction makeBid(Long auctionId, BidDTORequest bidDTO) {
+    public Auction makeBid(String userId, Long auctionId, BidDTORequest bidDTO) {
         User user =  userRepository.findById(bidDTO.getUserId()).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + bidDTO.getUserId()));
         Auction auction = auctionRepository.findById(auctionId).orElseThrow(
