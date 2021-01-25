@@ -78,8 +78,16 @@ public class AuctionService {
     }
 
     public void deleteAuction(String userId, Long id) {
+        if (userId.equals("")) throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "User is not logged in");
+
         Auction auction = auctionRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Auction not found with id: " + id));
+
+        if (!auction.getItem().getOwner().getId().equals(Long.parseLong(userId))) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Wrong user! This auction does not belong to you");
+        }
+
         auctionRepository.delete(auction);
     }
 
