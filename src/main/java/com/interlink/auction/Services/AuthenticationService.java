@@ -25,6 +25,7 @@ public class AuthenticationService {
             System.out.println(user.getId());
             Cookie cookie = new Cookie("id", user.getId().toString());
             cookie.setPath("/");
+            cookie.setHttpOnly(true);
             response.addCookie(cookie);
         } else throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exits");
     }
