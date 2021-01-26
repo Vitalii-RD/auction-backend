@@ -27,7 +27,11 @@ public class AuctionController {
 
     @GetMapping("/{id}")
     public Auction getAuction(@PathVariable("id") Long id) {
-        return auctionService.getAuctionById(id);
+        try {
+            return auctionService.getAuctionById(id);
+        } catch (NullPointerException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Auction not found with id: " + id);
+        }
     }
 
 

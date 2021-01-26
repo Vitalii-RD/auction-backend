@@ -43,7 +43,7 @@ public class AuctionService {
     public Auction getAuctionById(Long id) {
         Auction auction = auctionRepository
             .findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Auction not found with id: " + id));
+            .orElseThrow(NullPointerException::new);
         auction.getHistory().sort(AuctionService::sortHistory);
         return auction;
     }
