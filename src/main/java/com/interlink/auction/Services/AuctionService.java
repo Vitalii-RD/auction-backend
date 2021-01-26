@@ -1,5 +1,6 @@
 package com.interlink.auction.Services;
 
+import com.interlink.auction.Exceptions.InvalidBidValueException;
 import com.interlink.auction.Exceptions.WrongUserException;
 import com.interlink.auction.Models.DTO.AuctionDTORequest;
 import com.interlink.auction.Models.DTO.BidDTORequest;
@@ -77,19 +78,16 @@ public class AuctionService {
         auctionRepository.delete(auction);
     }
 
-    public Auction makeBid(String id, Long auctionId, BidDTORequest bidDTO) {
-        if (id.equals("")) throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "User is not logged in");
-
+    public Auction makeBid(String id, Long auctionId, Bid bid)
+            throws WrongUserException, InvalidBidValueException {
         Long userId = Long.valueOf(id);
-        User user =  userRepository.findById(userId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " +  userId));
-        Auction auction = auctionRepository.findById(auctionId).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Auction not found with id: " + auctionId));
+        User user =  userRepository.findById(userId)
+                .orElseThrow(() -> new NullPointerException("User not found with id: " +  userId));
+        Auction auction = auctionRepository.findById(auctionId)
+                .orElseThrow(() -> new NullPointerException("Auction not found with id: " + auctionId));
 
-        if (userId.equals(auction.getItem().getOwner().getId())) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Owner cannot create a bid on his own item");
-        }
+        if (userId.equals(auction.getItem().getOwner().getId()))
+            throw new WrongUserException("Owner cannot create a bid on his own item");
 
         Bid latestBid = bidRepository.findMaxBidInAuction(auctionId);
 
@@ -98,34 +96,34 @@ public class AuctionService {
             Long increasedMaxBid = getIncreasedBidValue(latestBid.getMaxBid());
 
             if (userId.equals(latestBid.getUser().getId())) {
-                throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "User`s bid is already the highest");
-            } else if (bidDTO.getMaxBid() == bidDTO.getBid()) {
-                if (bidDTO.getBid() < increasedBid)  {
-                    throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Bid is too small");
-                } else if (bidDTO.getBid() < increasedMaxBid) {
-                    latestBid.setBid(bidDTO.getBid());
+                throw new  InvalidBidValueException("User`s bid is already the highest");
+            } else if (bid.getMaxBid() == bid.getBid()) {
+                if (bid.getBid() < increasedBid)  {
+                    throw new InvalidBidValueException("Bid is too small");
+                } else if (bid.getBid() < increasedMaxBid) {
+                    latestBid.setBid(bid.getBid());
                     bidRepository.save(latestBid);
-                    throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Bid is too small");
+                    throw new InvalidBidValueException("Bid is too small");
                 }
-            } else if(bidDTO.getMaxBid() > increasedMaxBid) {
-                if (bidDTO.getBid() < increasedMaxBid) {
-                    bidDTO.setBid(increasedMaxBid);
+            } else if(bid.getMaxBid() > increasedMaxBid) {
+                if (bid.getBid() < increasedMaxBid) {
+                    bid.setBid(increasedMaxBid);
                 }
-            } else if (bidDTO.getMaxBid() < increasedMaxBid) {
-                if (bidDTO.getMaxBid() > increasedBid) {
-                    latestBid.setBid(bidDTO.getMaxBid());
+            } else if (bid.getMaxBid() < increasedMaxBid) {
+                if (bid.getMaxBid() > increasedBid) {
+                    latestBid.setBid(bid.getMaxBid());
                     bidRepository.save(latestBid);
                 }
-                throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Bid is too small");
+                throw new InvalidBidValueException("Bid is too small");
             }
 
-        } else if (auction.getInitialBid() > bidDTO.getBid()) {
-            if (auction.getInitialBid() < bidDTO.getMaxBid()) {
-                bidDTO.setBid(auction.getInitialBid());
-            } else throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Bid is smaller than initial bid");
+        } else if (auction.getInitialBid() > bid.getBid()) {
+            if (auction.getInitialBid() < bid.getMaxBid()) {
+                bid.setBid(auction.getInitialBid());
+            } else throw new InvalidBidValueException("Bid is smaller than initial bid");
         }
 
-        auction.addBidToHistory(new Bid(bidDTO.getBid(), bidDTO.getMaxBid(), user, LocalDateTime.now()));
+        auction.addBidToHistory(new Bid(bid.getBid(), bid.getMaxBid(), user, LocalDateTime.now()));
         return auctionRepository.save(auction);
     }
 

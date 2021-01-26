@@ -1,9 +1,11 @@
 package com.interlink.auction.Controllers;
 
+import com.interlink.auction.Exceptions.InvalidBidValueException;
 import com.interlink.auction.Exceptions.WrongUserException;
 import com.interlink.auction.Models.DTO.AuctionDTORequest;
 import com.interlink.auction.Models.DTO.BidDTORequest;
 import com.interlink.auction.Models.Entities.Auction;
+import com.interlink.auction.Models.Entities.Bid;
 import com.interlink.auction.Models.Entities.Item;
 import com.interlink.auction.Services.AuctionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +71,17 @@ public class AuctionController {
     public Auction makeBid(@CookieValue(value = "id", defaultValue = "") String userId,
                            @PathVariable("id") Long auctionId,
                            @RequestBody BidDTORequest bidDTORequest) {
-        return auctionService.makeBid(userId, auctionId, bidDTORequest);
+        if (userId.equals("")) throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "User is not logged in");
+        try {
+
+            Bid bid = new Bid(bidDTORequest.getBid(), bidDTORequest.getMaxBid(), null, null);
+            return auctionService.makeBid(userId, auctionId, bid);
+        } catch (NullPointerException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (WrongUserException | InvalidBidValueException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, e.getMessage());
+        }
     }
 
     @PutMapping("/{id}")
