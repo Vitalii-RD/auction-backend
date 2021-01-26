@@ -4,6 +4,7 @@ import com.interlink.auction.Models.DTO.LoginDTORequest;
 import com.interlink.auction.Models.DTO.UserDTOResponse;
 import com.interlink.auction.Services.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.Cookie;
@@ -22,4 +23,10 @@ public class AuthenticationController {
     public UserDTOResponse login(HttpServletResponse response, @RequestBody LoginDTORequest loginDTORequest) {
         return authenticationService.login(response, loginDTORequest);
     }
+
+    @PostMapping("/logout")
+    public void logout(HttpServletResponse response) {
+        authenticationService.logout(response);
+    }
+
 }

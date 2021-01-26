@@ -33,5 +33,11 @@ public class AuthenticationService {
     }
 
 
-
+    public void logout(HttpServletResponse response) {
+        Cookie cookie = new Cookie("id", null);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+    }
 }
