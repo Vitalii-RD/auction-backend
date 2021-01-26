@@ -20,24 +20,7 @@ public class AuthenticationService {
     @Autowired
     UserRepository userRepository;
 
-    public UserDTOResponse login(HttpServletResponse response, LoginDTORequest loginDTORequest) {
-        UserDTOResponse user = userRepository.findByEmailAndPassword(loginDTORequest.getEmail(), loginDTORequest.getPassword());
-        if (user != null) {
-            System.out.println(user.getId());
-            Cookie cookie = new Cookie("id", user.getId().toString());
-            cookie.setPath("/");
-            cookie.setHttpOnly(true);
-            response.addCookie(cookie);
-        } else throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User does not exits");
-        return user;
-    }
-
-
-    public void logout(HttpServletResponse response) {
-        Cookie cookie = new Cookie("id", null);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
+    public UserDTOResponse login(String email, String password) {
+        return userRepository.findByEmailAndPassword(email, password);
     }
 }
