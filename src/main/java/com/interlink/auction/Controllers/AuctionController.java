@@ -3,10 +3,14 @@ package com.interlink.auction.Controllers;
 import com.interlink.auction.Models.DTO.AuctionDTORequest;
 import com.interlink.auction.Models.DTO.BidDTORequest;
 import com.interlink.auction.Models.Entities.Auction;
+import com.interlink.auction.Models.Entities.Item;
 import com.interlink.auction.Services.AuctionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:4200", allowedHeaders = "*", allowCredentials = "true")
@@ -29,8 +33,17 @@ public class AuctionController {
 
     @PostMapping()
     public Auction createAuction(@CookieValue(value = "id", defaultValue = "") String userId,
-                                 @RequestBody AuctionDTORequest auction) {
-        return auctionService.createAuction(userId, auction);
+                                 @RequestBody AuctionDTORequest auctionDTO) {
+        if (userId.equals(""))
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User is not logged in");
+        try {
+            Item item = new Item();
+            item.setTitle(auctionDTO.getItemName());
+            Auction auction = new Auction(item, auctionDTO.getInitialBid(), LocalDateTime.now(), false);
+            return auctionService.createAuction(userId, auction);
+        } catch (NullPointerException e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found with id: " + userId);
+        }
     }
 
     @DeleteMapping("/{id}")

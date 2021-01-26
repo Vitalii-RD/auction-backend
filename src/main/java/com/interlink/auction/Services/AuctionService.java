@@ -27,18 +27,11 @@ public class AuctionService {
     @Autowired
     BidRepository bidRepository;
 
-    public Auction createAuction(String userId, AuctionDTORequest auctionDTO) {
-        if (userId.equals("")) throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "User is not logged in");
-
+    public Auction createAuction(String userId, Auction auction) {
         User owner = userRepository.findById(Long.parseLong(userId))
-            .orElseThrow(() -> new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Account not found with id: " + userId));
-
-        Item item = new Item(auctionDTO.getItemName(), owner);
-        Auction result = new Auction(item, auctionDTO.getInitialBid(), LocalDateTime.now(), false);
-        return auctionRepository.save(result);
+            .orElseThrow(NullPointerException::new);
+        auction.getItem().setOwner(owner);
+        return auctionRepository.save(auction);
     }
 
     public List<Auction> getAll() {
