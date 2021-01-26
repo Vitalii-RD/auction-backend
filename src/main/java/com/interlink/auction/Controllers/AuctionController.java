@@ -1,5 +1,6 @@
 package com.interlink.auction.Controllers;
 
+import com.interlink.auction.Exceptions.WrongUserException;
 import com.interlink.auction.Models.DTO.AuctionDTORequest;
 import com.interlink.auction.Models.DTO.BidDTORequest;
 import com.interlink.auction.Models.Entities.Auction;
@@ -67,6 +68,14 @@ public class AuctionController {
     public Auction closeAuction(@CookieValue(value = "id", defaultValue = "") String userId,
                                 @PathVariable("id") Long auctionId,
                                 @RequestBody AuctionDTORequest auctionDTORequest) {
-        return auctionService.closeAuction(userId, auctionId, auctionDTORequest);
+        if (userId.equals("")) throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "User is not logged in");
+        try {
+            return auctionService.closeAuction(userId, auctionId, auctionDTORequest);
+        } catch (NullPointerException e ) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Auction not found with id: " + userId);
+        } catch (WrongUserException e ) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, e.getMessage());
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.interlink.auction.Services;
 
+import com.interlink.auction.Exceptions.WrongUserException;
 import com.interlink.auction.Models.DTO.AuctionDTORequest;
 import com.interlink.auction.Models.DTO.BidDTORequest;
 import com.interlink.auction.Models.Entities.Auction;
@@ -48,17 +49,13 @@ public class AuctionService {
         return auction;
     }
 
-    public Auction closeAuction(String userId, Long id, AuctionDTORequest auctionDTO) {
-        if (userId.equals("")) throw new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "User is not logged in");
-
+    public Auction closeAuction(String userId, Long id, AuctionDTORequest auctionDTO) throws WrongUserException {
         Auction auction = auctionRepository
                 .findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Auction not found with id: " + id));
+                .orElseThrow(NullPointerException::new);
 
-        if (!auction.getItem().getOwner().getId().equals(Long.parseLong(userId))) {
-            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Wrong user! This auction does not belong to you");
-        }
+        if (!auction.getItem().getOwner().getId().equals(Long.parseLong(userId)))
+            throw new WrongUserException("Wrong user! This auction does not belong to you");
 
         auction.getHistory().sort(AuctionService::sortHistory);
         auction.setDone(true);
