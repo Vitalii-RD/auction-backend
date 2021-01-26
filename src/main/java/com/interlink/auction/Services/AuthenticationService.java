@@ -23,13 +23,4 @@ public class AuthenticationService {
     public UserDTOResponse login(String email, String password) {
         return userRepository.findByEmailAndPassword(email, password);
     }
-
-
-    public void logout(HttpServletResponse response) {
-        Cookie cookie = new Cookie("id", null);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
-    }
 }
