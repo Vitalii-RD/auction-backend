@@ -27,13 +27,14 @@ public class AuctionService {
     @Autowired
     BidRepository bidRepository;
 
-    public Auction createAuction(AuctionDTORequest auctionDTO) {
-        User owner = userRepository.findById(auctionDTO.getOwnerId())
-            .orElseThrow(
-                () -> new ResponseStatusException(
+    public Auction createAuction(String userId, AuctionDTORequest auctionDTO) {
+        if (userId.equals("")) throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "User is not logged in");
+
+        User owner = userRepository.findById(Long.parseLong(userId))
+            .orElseThrow(() -> new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
-                    "Account not found with id: " + auctionDTO.getOwnerId())
-            );
+                    "Account not found with id: " + userId));
 
         Item item = new Item(auctionDTO.getItemName(), owner);
         Auction result = new Auction(item, auctionDTO.getInitialBid(), LocalDateTime.now(), false);
@@ -54,12 +55,15 @@ public class AuctionService {
         return auction;
     }
 
-    public Auction closeAuction(Long id, AuctionDTORequest auctionDTO) {
+    public Auction closeAuction(String userId, Long id, AuctionDTORequest auctionDTO) {
+        if (userId.equals("")) throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "User is not logged in");
+
         Auction auction = auctionRepository
                 .findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Auction not found with id: " + id));
 
-        if (!auction.getItem().getOwner().getId().equals(auctionDTO.getOwnerId())) {
+        if (!auction.getItem().getOwner().getId().equals(Long.parseLong(userId))) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Wrong user! This auction does not belong to you");
         }
 
@@ -73,19 +77,31 @@ public class AuctionService {
         return (int) (e1.getBid() - e2.getBid());
     }
 
-    public void deleteAuction(Long id) {
+    public void deleteAuction(String userId, Long id) {
+        if (userId.equals("")) throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "User is not logged in");
+
         Auction auction = auctionRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Auction not found with id: " + id));
+
+        if (!auction.getItem().getOwner().getId().equals(Long.parseLong(userId))) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Wrong user! This auction does not belong to you");
+        }
+
         auctionRepository.delete(auction);
     }
 
-    public Auction makeBid(Long auctionId, BidDTORequest bidDTO) {
-        User user =  userRepository.findById(bidDTO.getUserId()).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + bidDTO.getUserId()));
+    public Auction makeBid(String id, Long auctionId, BidDTORequest bidDTO) {
+        if (id.equals("")) throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "User is not logged in");
+
+        Long userId = Long.valueOf(id);
+        User user =  userRepository.findById(userId).orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " +  userId));
         Auction auction = auctionRepository.findById(auctionId).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Auction not found with id: " + auctionId));
 
-        if (bidDTO.getUserId().equals(auction.getItem().getOwner().getId())) {
+        if (userId.equals(auction.getItem().getOwner().getId())) {
             throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "Owner cannot create a bid on his own item");
         }
 
@@ -95,7 +111,7 @@ public class AuctionService {
             Long increasedBid = getIncreasedBidValue(latestBid.getBid());
             Long increasedMaxBid = getIncreasedBidValue(latestBid.getMaxBid());
 
-            if (bidDTO.getUserId().equals(latestBid.getUser().getId())) {
+            if (userId.equals(latestBid.getUser().getId())) {
                 throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, "User`s bid is already the highest");
             } else if (bidDTO.getMaxBid() == bidDTO.getBid()) {
                 if (bidDTO.getBid() < increasedBid)  {

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin
+@CrossOrigin(origins = "http://localhost:4200", allowedHeaders = "*", allowCredentials = "true")
 @RestController
 @RequestMapping("/auctions")
 public class AuctionController {
@@ -17,32 +17,39 @@ public class AuctionController {
     private AuctionService auctionService;
 
     @GetMapping
-    List<Auction> getAll() {
+    public List<Auction> getAll() {
         return auctionService.getAll();
     }
 
     @GetMapping("/{id}")
-    Auction getAuction(@PathVariable("id") Long id) {
+    public Auction getAuction(@PathVariable("id") Long id) {
         return auctionService.getAuctionById(id);
     }
 
+
     @PostMapping()
-    public Auction createAuction(@RequestBody AuctionDTORequest auction) {
-        return auctionService.createAuction(auction);
+    public Auction createAuction(@CookieValue(value = "id", defaultValue = "") String userId,
+                                 @RequestBody AuctionDTORequest auction) {
+        return auctionService.createAuction(userId, auction);
     }
 
     @DeleteMapping("/{id}")
-    void deleteAuction(@PathVariable("id") Long id) {
-        auctionService.deleteAuction(id);
+    public void deleteAuction(@CookieValue(value = "id", defaultValue = "") String userId,
+                       @PathVariable("id") Long auctionId) {
+        auctionService.deleteAuction(userId, auctionId);
     }
 
     @PostMapping("/{id}/bids")
-    public Auction makeBid(@PathVariable("id") Long id, @RequestBody BidDTORequest bidDTORequest) {
-        return auctionService.makeBid(id, bidDTORequest);
+    public Auction makeBid(@CookieValue(value = "id", defaultValue = "") String userId,
+                           @PathVariable("id") Long auctionId,
+                           @RequestBody BidDTORequest bidDTORequest) {
+        return auctionService.makeBid(userId, auctionId, bidDTORequest);
     }
 
     @PutMapping("/{id}")
-    public Auction closeAuction(@PathVariable("id") Long id, @RequestBody AuctionDTORequest auctionDTORequest) {
-        return auctionService.closeAuction(id, auctionDTORequest);
+    public Auction closeAuction(@CookieValue(value = "id", defaultValue = "") String userId,
+                                @PathVariable("id") Long auctionId,
+                                @RequestBody AuctionDTORequest auctionDTORequest) {
+        return auctionService.closeAuction(userId, auctionId, auctionDTORequest);
     }
 }
