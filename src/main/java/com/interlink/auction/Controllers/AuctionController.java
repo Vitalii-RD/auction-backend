@@ -54,7 +54,15 @@ public class AuctionController {
     @DeleteMapping("/{id}")
     public void deleteAuction(@CookieValue(value = "id", defaultValue = "") String userId,
                        @PathVariable("id") Long auctionId) {
-        auctionService.deleteAuction(userId, auctionId);
+        if (userId.equals("")) throw new ResponseStatusException(
+                HttpStatus.NOT_FOUND, "User is not logged in");
+        try {
+            auctionService.deleteAuction(userId, auctionId);
+        } catch (NullPointerException e ) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Auction not found with id: " + userId);
+        } catch (WrongUserException e ) {
+            throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE, e.getMessage());
+        }
     }
 
     @PostMapping("/{id}/bids")
